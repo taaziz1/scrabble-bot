@@ -1,0 +1,54 @@
+from collections import Counter
+
+from scrabble_game.models import Tile
+
+
+def test_bag_from_distribution_creates_correct_tile_count(sample_bag, small_tile_distribution):
+    assert sample_bag.remaining() == sum(small_tile_distribution.values())
+
+
+def test_bag_draw_reduces_size(sample_bag):
+    start = sample_bag.remaining()
+    drawn = sample_bag.draw(3)
+    assert len(drawn) == 3
+    assert sample_bag.remaining() == start - 3
+
+
+def test_bag_draw_more_than_remaining(sample_bag):
+    total = sample_bag.remaining()
+    drawn = sample_bag.draw(total + 10)
+    assert len(drawn) == total
+    assert sample_bag.remaining() == 0
+
+
+def test_bag_return_tiles_increases_size(sample_bag):
+    drawn = sample_bag.draw(2)
+    before = sample_bag.remaining()
+    sample_bag.return_tiles(drawn)
+    assert sample_bag.remaining() == before + 2
+
+
+def test_bag_is_empty(sample_bag):
+    sample_bag.draw(sample_bag.remaining())
+    assert sample_bag.is_empty() is True
+
+
+def test_bag_contains_blank_tiles(sample_bag):
+    all_tiles = sample_bag.draw(sample_bag.remaining())
+    assert any(tile.is_blank for tile in all_tiles)
+
+
+def test_bag_tile_counts_match_distribution(small_tile_distribution, small_tile_points):
+    from scrabble.bag import Bag
+    import random
+
+    bag = Bag.from_distribution(
+        tile_distribution=small_tile_distribution,
+        tile_points=small_tile_points,
+        rng=random.Random(1),
+    )
+    tiles = bag.draw(bag.remaining())
+    counts = Counter(tile.letter for tile in tiles)
+
+    for letter, expected_count in small_tile_distribution.items():
+        assert counts[letter] == expected_count

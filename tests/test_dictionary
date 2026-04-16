@@ -1,0 +1,49 @@
+import pickle
+
+import pytest
+
+from scrabble_game.dictionary import DictionaryLoadError, PickleDictionary
+
+
+def test_dictionary_from_pickle(tmp_dictionary_pickle):
+    dictionary = PickleDictionary.from_pickle(tmp_dictionary_pickle)
+    assert len(dictionary) > 0
+
+
+def test_dictionary_contains_valid_word(tmp_dictionary_pickle):
+    dictionary = PickleDictionary.from_pickle(tmp_dictionary_pickle)
+    assert dictionary.contains("CAT") is True
+
+
+def test_dictionary_contains_is_case_insensitive(tmp_dictionary_pickle):
+    dictionary = PickleDictionary.from_pickle(tmp_dictionary_pickle)
+    assert dictionary.contains("cat") is True
+    assert "cat" in dictionary
+
+
+def test_dictionary_rejects_invalid_word(tmp_dictionary_pickle):
+    dictionary = PickleDictionary.from_pickle(tmp_dictionary_pickle)
+    assert dictionary.contains("ZZZZZZ") is False
+
+
+def test_dictionary_missing_file():
+    with pytest.raises(FileNotFoundError):
+        PickleDictionary.from_pickle("does_not_exist.pickle")
+
+
+def test_dictionary_invalid_pickle_type(tmp_path):
+    path = tmp_path / "bad.pickle"
+    with path.open("wb") as f:
+        pickle.dump(["CAT", "DOG"], f)
+
+    with pytest.raises(DictionaryLoadError):
+        PickleDictionary.from_pickle(path)
+
+
+def test_dictionary_invalid_non_string_entries(tmp_path):
+    path = tmp_path / "bad2.pickle"
+    with path.open("wb") as f:
+        pickle.dump({"CAT", 123}, f)
+
+    with pytest.raises(DictionaryLoadError):
+        PickleDictionary.from_pickle(path)
