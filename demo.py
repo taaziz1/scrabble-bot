@@ -185,7 +185,5 @@ def main() -> None:
     print_board(new_state.board)
     print_scores(new_state)
 
-
-
 if __name__ == "__main__":
-    main()
+        main()
