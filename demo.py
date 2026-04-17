@@ -2,7 +2,7 @@ from scrabble_game.config import DEFAULT_CONFIG
 from scrabble_game.dictionary import PickleDictionary
 from scrabble_game.game import ScrabbleGame
 from scrabble_game.models import Tile
-from scrabble_game.move import Placement, PlayMove
+from scrabble_game.move import Placement, PlayMove, ExchangeMove, PassMove
 
 
 def print_board(board) -> None:
@@ -45,9 +45,11 @@ def main() -> None:
     print_scores(state)
 
     move = PlayMove(placements=(
-        Placement(row=7, col=7, tile_index_in_rack=0),
-        Placement(row=7, col=8, tile_index_in_rack=1),
-        Placement(row=7, col=9, tile_index_in_rack=2),
+        Placement(row=7, col=7, tile_index_in_rack=3),
+        Placement(row=7, col=8, tile_index_in_rack=2),
+        Placement(row=7, col=9, tile_index_in_rack=4),
+        Placement(row=7, col=10, tile_index_in_rack=1),
+        Placement(row=7, col=11, tile_index_in_rack=5)
     ))
 
     validation = game.validate_move(move)
@@ -67,6 +69,122 @@ def main() -> None:
     new_state = game.get_state()
     print_board(new_state.board)
     print_scores(new_state)
+
+    move = PlayMove(placements=(
+        Placement(row=6, col=9, tile_index_in_rack=4),
+        Placement(row=8, col=9, tile_index_in_rack=6),
+        Placement(row=9, col=9, tile_index_in_rack=1)
+    ))
+    validation = game.validate_move(move)
+    print("Validation result:")
+    print(f"valid={validation.valid}")
+    print(f"errors={validation.errors}")
+    print(f"words_formed={validation.words_formed}")
+    print()
+
+    result = game.apply_move(move)
+    print("After move:")
+    print(f"score_delta={result.score_delta}")
+    print(f"words_formed={result.words_formed}")
+    print(f"errors={result.errors}")
+    print()
+
+    new_state = game.get_state()
+    print_board(new_state.board)
+    print_scores(new_state)
+
+    move = ExchangeMove((1,3,4,5));
+    validation = game.validate_move(move)
+    print("Validation result:")
+    print(f"valid={validation.valid}")
+    print(f"errors={validation.errors}")
+    print(f"words_formed={validation.words_formed}")
+    print()
+
+    result = game.apply_move(move)
+    print("After move:")
+    print(f"score_delta={result.score_delta}")
+    print(f"words_formed={result.words_formed}")
+    print(f"errors={result.errors}")
+    print()
+
+    new_state = game.get_state()
+    print_board(new_state.board)
+    print_scores(new_state)
+
+    move = PlayMove(placements=(
+        Placement(row=5, col=7, tile_index_in_rack=0),
+        Placement(row=6, col=7, tile_index_in_rack=4),
+        Placement(row=8, col=7, tile_index_in_rack=6),
+        Placement(row=9, col=7, tile_index_in_rack=3)
+    ))
+    validation = game.validate_move(move)
+    print("Validation result:")
+    print(f"valid={validation.valid}")
+    print(f"errors={validation.errors}")
+    print(f"words_formed={validation.words_formed}")
+    print()
+
+    result = game.apply_move(move)
+    print("After move:")
+    print(f"score_delta={result.score_delta}")
+    print(f"words_formed={result.words_formed}")
+    print(f"errors={result.errors}")
+    print()
+
+    new_state = game.get_state()
+    print_board(new_state.board)
+    print_scores(new_state)
+    
+    move = PlayMove(placements=(
+        Placement(row=8, col=3, tile_index_in_rack=2),
+        Placement(row=8, col=4, tile_index_in_rack=5),
+        Placement(row=8, col=5, tile_index_in_rack=4),
+        Placement(row=8, col=6, tile_index_in_rack=6)
+    ))
+    validation = game.validate_move(move)
+    print("Validation result:")
+    print(f"valid={validation.valid}")
+    print(f"errors={validation.errors}")
+    print(f"words_formed={validation.words_formed}")
+    print()
+
+    result = game.apply_move(move)
+    print("After move:")
+    print(f"score_delta={result.score_delta}")
+    print(f"words_formed={result.words_formed}")
+    print(f"errors={result.errors}")
+    print()
+
+    new_state = game.get_state()
+    print_board(new_state.board)
+    print_scores(new_state)
+
+
+    move = PlayMove(placements=(
+        Placement(row=4, col=4, tile_index_in_rack=2),
+        Placement(row=5, col=4, tile_index_in_rack=3),
+        Placement(row=6, col=4, tile_index_in_rack=4),
+        Placement(row=7, col=4, tile_index_in_rack=0)
+    ))
+    validation = game.validate_move(move)
+    print("Validation result:")
+    print(f"valid={validation.valid}")
+    print(f"errors={validation.errors}")
+    print(f"words_formed={validation.words_formed}")
+    print()
+
+    result = game.apply_move(move)
+    print("After move:")
+    print(f"score_delta={result.score_delta}")
+    print(f"words_formed={result.words_formed}")
+    print(f"errors={result.errors}")
+    print()
+
+    new_state = game.get_state()
+    print_board(new_state.board)
+    print_scores(new_state)
+
 
 
 if __name__ == "__main__":
