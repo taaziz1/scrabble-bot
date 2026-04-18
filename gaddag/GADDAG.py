@@ -15,6 +15,8 @@ class GADDAG:
         return self
 
     def find(self, substring):
+        if len(substring) < 2:
+            return
         first_letter, second_letter, *last_letters = list(substring)
         words = []
         rev = last_letters[::-1]
@@ -23,8 +25,9 @@ class GADDAG:
             return words
 
         for path in self.root.follow_path(rev).final_paths():
-            if path.starts_with([second_letter, first_letter]):
-                words.append(str(Path(rev + path.letters).to_word()))
+            word = str(Path(rev + path.letters).to_word())
+            if substring in word:
+                words.append(word)
 
         return list(set(words))
 
@@ -76,6 +79,8 @@ class Node:
 
     def create_final_path(self, letters, destinations = None):
         destinations = destinations or []
+        if len(letters) < 2:
+            return
         *initial_letters, second_last_letter, last_letter = letters
         second_last_node = self.create_path(initial_letters, destinations)
 
@@ -112,7 +117,7 @@ class Node:
 
 
 class Arc:
-    def __init__(self, destination: Node):
+    def __init__(self, destination):
         self.destination = destination
         self.final_letters = set()
 
