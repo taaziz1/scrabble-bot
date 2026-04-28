@@ -185,7 +185,7 @@ class Word:
 
     def to_delimited_paths(self):
         paths = []
-        for index in range(1, len(self.letters) - 1):
+        for index in range(1, len(self.letters)):
             reversed_prefix = self.letters[0:index][::-1]
             suffix = self.letters[index:]
             paths.append(Path(reversed_prefix + [Path.DELIMITER] + suffix))
