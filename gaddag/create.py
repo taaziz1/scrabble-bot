@@ -48,9 +48,9 @@ def gen(pos, word, rack, arc):
             for letter in rack:
                 if rack[letter] > 0:
                     if letter in arc.final_letters:
-                        if pos <= 0:
+                        if pos <= 0 and (anchor - pos == 0 or not row[anchor - pos - 1]):
                             words.append(letter + word)
-                        else:
+                        elif anchor + pos == 14 or not row[anchor + pos + 1]:
                             words.append(word + letter)
                     if arc.destination.arc_exists(letter):
                         rack['size'] -= 1
@@ -64,9 +64,10 @@ def gen(pos, word, rack, arc):
 def go_on(pos, L, word, rack, new_arc):
     if pos <= 0:
         new_word = L + word
-        if anchor - pos > 0 and not row[anchor + pos - 1]:
+        if anchor + pos > 0:
             gen(pos - 1, new_word, rack, new_arc)
-        if (anchor - pos == 0 or not row[anchor - pos - 1]) and anchor < 14 and not row[anchor + 1] and new_arc.destination.arc_exists(Path.DELIMITER):
+        if ((anchor + pos == 0 or not row[anchor + pos - 1]) and anchor < 14
+                and new_arc.destination.arc_exists(Path.DELIMITER)):
             gen(1, new_word + Path.DELIMITER, rack, new_arc.destination.outgoing_arcs[Path.DELIMITER])
     else:
         new_word = word + L
