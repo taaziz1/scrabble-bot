@@ -15,7 +15,7 @@ g = GADDAG(['BOOST'])
 # nwl2023 = pickle.load(open("../NWL2023.pickle", "rb"))
 #
 # startGAD = time.perf_counter()
-# g = GADDAG(s)
+# g = GADDAG(nwl2023)
 # pickle.dump(g, open("../gaddagNWL2023.pickle", "wb"))
 # endGAD = time.perf_counter()
 #
@@ -27,7 +27,12 @@ g = GADDAG(['BOOST'])
 # end2 = time.perf_counter()
 # print(f"found in {end2 - start2} seconds")
 
-r = ['B', 'O', 'S', 'O', 'T', 'Y', 'A']
+r = {'A': 0, 'B': 1, 'C': 0, 'D': 0, 'E': 0,
+          'F': 0, 'G': 0, 'H': 0, 'I': 0, 'J': 0,
+          'K': 0, 'L': 0, 'M': 0, 'N': 0, 'O': 2,
+          'P': 0, 'Q': 0, 'R': 0, 'S': 1, 'T': 1,
+          'U': 0, 'V': 0, 'W': 0, 'X': 0, 'Y': 0,
+          'Z': 0, 'size': 5}
 row = [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
 anchor = 6
 words = []
@@ -38,19 +43,23 @@ def gen(pos, word, rack, arc):
         letter = row[anchor + pos]
         if arc.destination.arc_exists(letter):
             go_on(pos, letter, word, rack, arc.destination.outgoing_arcs[letter])
-    elif len(rack) > 0:
-        for letter in rack:
-            if letter in arc.final_letters:
-                if pos <= 0:
-                    words.append(letter + word)
-                else:
-                    words.append(word + letter)
-            if arc.destination.arc_exists(letter):
-                c = rack.copy()
-                c.remove(letter)
-                go_on(pos, letter, word, c, arc.destination.outgoing_arcs[letter])
-    elif Path.DELIMITER in arc.final_letters:
-        words.append(word)
+    else:
+        if rack['size'] > 0:
+            for letter in rack:
+                if rack[letter] > 0:
+                    if letter in arc.final_letters:
+                        if pos <= 0:
+                            words.append(letter + word)
+                        else:
+                            words.append(word + letter)
+                    if arc.destination.arc_exists(letter):
+                        rack['size'] -= 1
+                        rack[letter] -= 1
+                        go_on(pos, letter, word, rack, arc.destination.outgoing_arcs[letter])
+                        rack[letter] += 1
+                        rack['size'] += 1
+        if Path.DELIMITER in arc.final_letters:
+            words.append(word + Path.DELIMITER)
 
 def go_on(pos, L, word, rack, new_arc):
     if pos <= 0:
