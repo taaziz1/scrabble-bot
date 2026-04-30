@@ -2,8 +2,12 @@ from itertools import zip_longest
 
 
 class GADDAG:
-    def __init__(self):
+    def __init__(self, words = None):
         self.root = Node()
+        self.root_arc = Arc(self.root)
+        if words:
+            for word in words:
+                self.add(word)
 
     def add(self, word):
         chars = list(word)
@@ -18,18 +22,17 @@ class GADDAG:
         if len(substring) < 2:
             return
         first_letter, second_letter, *last_letters = list(substring)
-        words = []
+        words = set()
         rev = last_letters[::-1]
 
         if not self.root.path_exists(rev):
             return words
 
         for path in self.root.follow_path(rev).final_paths():
-            word = str(Path(rev + path.letters).to_word())
-            if substring in word:
-                words.append(word)
+            if path.starts_with([second_letter, first_letter]):
+                words.add(str(Path(rev + path.letters).to_word()))
 
-        return list(set(words))
+        return words
 
 
 class Node:
@@ -128,7 +131,7 @@ class Arc:
         self.final_letters.add(letter)
 
     def final_paths(self):
-        return [Path([f1]) for f1 in self.final_letters] + self.destination.final_paths()
+        return [Path([fl]) for fl in self.final_letters] + self.destination.final_paths()
 
 
 class Path:
