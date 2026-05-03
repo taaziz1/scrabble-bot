@@ -181,14 +181,21 @@ class Board:
 
     def __str__(self) -> str:
         rows: list[str] = []
+        rows.append("    A B C D E F G H I J K L M N O")
 
-        for row in self._grid:
+        for i in range(len(self._grid)):
+            row = self._grid[i]
             rendered_row: list[str] = []
+            if i < 9:
+                rendered_row.append(" " + str(i + 1) + " ")
+            else:
+                rendered_row.append(str(i + 1) + " ")
             for square in row:
                 if square.tile is None:
                     rendered_row.append(".")
                 else:
                     rendered_row.append(square.tile.letter)
             rows.append(" ".join(rendered_row))
+        rows.append("")
 
         return "\n".join(rows)
