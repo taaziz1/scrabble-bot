@@ -45,6 +45,13 @@ class GADDAG:
         def gen(pos, word, rack, arc):
             if row[anchor + pos]:
                 letter = row[anchor + pos]
+                if letter in arc.final_letters:
+                    if pos <= 0:
+                        words.add((anchor, idx, letter + word))
+                    else:
+                        words.add((anchor, idx, word + letter))
+                if Path.DELIMITER in arc.final_letters and (anchor == 14 or not row[anchor + 1]):
+                    words.add((anchor, idx, word + Path.DELIMITER))
                 if arc.destination.arc_exists(letter):
                     go_on(pos, letter, word, rack, arc.destination.outgoing_arcs[letter])
             else:
@@ -80,7 +87,7 @@ class GADDAG:
                                 go_on(pos, letter, word, rack, arc.destination.outgoing_arcs[letter])
                                 rack[letter] += 1
                                 rack['size'] += 1
-                if (Path.DELIMITER in arc.final_letters
+                if (Path.DELIMITER in arc.final_letters and (anchor == 14 or not row[anchor + 1])
                         and cross_sets.valid_letter(idx, anchor + pos + 1, word[-1:], transposed)):
                     words.add((anchor, idx, word + Path.DELIMITER))
 
@@ -123,7 +130,7 @@ class GADDAG:
             delim = move[2].index(Path.DELIMITER) - 1
             row_num = move[1] + 1
             col_char = chr(move[0] - delim + ord('A'))
-            final_moves.add((row_num, col_char, 'R', move[2].replace(Path.DELIMITER, '')))
+            final_moves.add((row_num, col_char, 'R', move[2].replace(Path.DELIMITER, ''), delim))
         moves.clear()
 
         # generate column moves
@@ -139,7 +146,7 @@ class GADDAG:
             delim = move[2].index(Path.DELIMITER) - 1
             row_num = move[0] - delim + 1
             col_char = chr(move[1] + ord('A'))
-            final_moves.add((row_num, col_char, 'D', move[2].replace(Path.DELIMITER, '')))
+            final_moves.add((row_num, col_char, 'D', move[2].replace(Path.DELIMITER, ''), delim))
 
         return sorted(final_moves, key=lambda mv: len(mv[3]), reverse=True)
 

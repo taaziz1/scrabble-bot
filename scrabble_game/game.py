@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pickle
 import random
-from copy import deepcopy
 
 from .bag import Bag
 from .board import Board
@@ -119,7 +118,7 @@ class ScrabbleGame:
                 errors=validation.errors,
             )
 
-        new_state = deepcopy(self._state)
+        new_state = self._state
         current_player = new_state.players[new_state.current_player_index]
 
         words_formed = list(validation.words_formed)
@@ -157,8 +156,6 @@ class ScrabbleGame:
 
         if not new_state.is_finished:
             new_state.current_player_index = self._next_player_index(new_state)
-
-        self._state = new_state
 
         return MoveResult(
             state=self._state,
