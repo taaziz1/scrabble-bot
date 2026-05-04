@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import pickle
 import random
 from copy import deepcopy
 
 from .bag import Bag
 from .board import Board
 from .config import GameConfig
+from .cross_sets import CrossSets
 from .dictionary import Dictionary
+from gaddag.GADDAG import GADDAG
 from .models import Tile
 from .move import ExchangeMove, PassMove, PlayMove
 from .rack import Rack
@@ -22,11 +25,14 @@ class ScrabbleGame:
         config: GameConfig,
         player_names: list[str],
         dictionary: Dictionary,
+        gaddag: GADDAG | None = None,
         rng_seed: int | None = None,
     ) -> None:
         self._config = config
         self._dictionary = dictionary
+        self._gaddag = gaddag
         self._rng = random.Random(rng_seed)
+        self._cross_set = None
         self._state = self._new_game(player_names)
 
     def _new_game(self, player_names: list[str]) -> GameState:
@@ -43,6 +49,9 @@ class ScrabbleGame:
             size=self._config.board_size,
             premium_squares=self._config.premium_squares,
         )
+
+        if self._gaddag:
+            self._cross_set = CrossSets(gaddag=self._gaddag)
 
         bag = Bag.from_distribution(
             tile_distribution=self._config.tile_distribution,
@@ -72,6 +81,9 @@ class ScrabbleGame:
 
     def get_state(self) -> GameState:
         return self._state
+
+    def potential_moves(self, rack):
+        return self._gaddag.generate_moves(self._state.board, self._cross_set, rack)
 
     def validate_move(self, move) -> ValidationResult:
         if self._state.is_finished:
@@ -121,6 +133,8 @@ class ScrabbleGame:
             )
             current_player.score += score_delta
             self._refill_rack(current_player.rack, new_state.bag)
+            if self._cross_set:
+                self._cross_set.update_cross_sets(new_state.board, move.placements, move.already_placed)
             new_state.consecutive_scoreless_turns = 0
 
         elif isinstance(move, ExchangeMove):

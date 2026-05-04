@@ -8,7 +8,7 @@ import time
 #
 # print(f"loaded in {end1 - start1} seconds")
 
-g = GADDAG(['BAGUETTE', 'GETTABLE'])
+g = GADDAG(['BOOST', 'ABOOST', 'BOOSTA'])
 
 # print([''.join(p.letters) for p in g.root.final_paths()])
 
@@ -27,16 +27,20 @@ g = GADDAG(['BAGUETTE', 'GETTABLE'])
 # end2 = time.perf_counter()
 # print(f"found in {end2 - start2} seconds")
 
-r = {'A': 1, 'B': 1, 'C': 0, 'D': 0, 'E': 2,
+r = {'A': 1, 'B': 1, 'C': 0, 'D': 0, 'E': 0,
           'F': 0, 'G': 0, 'H': 0, 'I': 0, 'J': 0,
-          'K': 0, 'L': 0, 'M': 0, 'N': 0, 'O': 0,
-          'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 2,
+          'K': 0, 'L': 0, 'M': 0, 'N': 0, 'O': 2,
+          'P': 0, 'Q': 0, 'R': 0, 'S': 1, 'T': 1,
           'U': 0, 'V': 0, 'W': 0, 'X': 0, 'Y': 0,
-          'Z': 0, 'blank': 1, 'size': 7}
-row = [None, None, None, None, None, None, None, 'G', None, None, None, None, None, None, None]
-anchor = 8
+          'Z': 0, 'blank': 0, 'size': 6}
+row = [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None]
+anchor = 7
 words = []
 
+
+
+def is_anchor(row, column):
+    return False
 
 def gen(pos, word, rack, arc):
     if row[anchor + pos]:
@@ -48,7 +52,7 @@ def gen(pos, word, rack, arc):
             for letter in rack:
                 if rack[letter] > 0:
                     if letter in arc.final_letters:
-                        if pos <= 0 and (anchor - pos == 0 or not row[anchor - pos - 1]):
+                        if pos <= 0 and (anchor + pos == 0 or not row[anchor + pos - 1]):
                             words.append(letter + word)
                         elif anchor + pos == 14 or not row[anchor + pos + 1]:
                             words.append(word + letter)
@@ -57,7 +61,7 @@ def gen(pos, word, rack, arc):
                         rack['blank'] -= 1
                         for l in arc.final_letters:
                             if not l == Path.DELIMITER:
-                                if pos <= 0 and (anchor - pos == 0 or not row[anchor - pos - 1]):
+                                if pos <= 0 and (anchor + pos == 0 or not row[anchor + pos - 1]):
                                     words.append(l.lower() + word)
                                 elif anchor + pos == 14 or not row[anchor + pos + 1]:
                                     words.append(word + l.lower())

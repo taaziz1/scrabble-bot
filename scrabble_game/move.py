@@ -13,6 +13,7 @@ class Placement:
 @dataclass(frozen=True)
 class PlayMove:
     placements: Tuple[Placement, ...]
+    already_placed: Optional[list[Tuple[int, int]]] = None
 
 
 @dataclass(frozen=True)

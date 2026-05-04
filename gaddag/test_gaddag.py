@@ -9,10 +9,10 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, x) for x in range(len(s) + 1))
 
 
-nwl2023 = load(open("NWL2023.pickle", "rb"))
+nwl2023 = load(open("../NWL2023.pickle", "rb"))
 
 start1 = perf_counter()
-g = load(open("gaddagNWL2023.pickle", "rb"))
+g = load(open("../gaddagNWL2023.pickle", "rb"))
 end1 = perf_counter()
 
 print(f"loaded in {end1 - start1} seconds")
@@ -32,7 +32,7 @@ def test_1000_variations():
                 for letter in rack:
                     if rack[letter] > 0:
                         if letter in arc.final_letters:
-                            if pos <= 0 and (anchor - pos == 0 or not row[anchor - pos - 1]):
+                            if pos <= 0 and (anchor + pos == 0 or not row[anchor + pos - 1]):
                                 words.add(letter + word)
                             elif anchor + pos == 14 or not row[anchor + pos + 1]:
                                 words.add(word + letter)
@@ -41,7 +41,7 @@ def test_1000_variations():
                             rack['blank'] -= 1
                             for l in arc.final_letters:
                                 if not l == Path.DELIMITER:
-                                    if pos <= 0 and (anchor - pos == 0 or not row[anchor - pos - 1]):
+                                    if pos <= 0 and (anchor + pos == 0 or not row[anchor + pos - 1]):
                                         words.add(l.lower() + word)
                                     elif anchor + pos == 14 or not row[anchor + pos + 1]:
                                         words.add(word + l.lower())
@@ -98,6 +98,8 @@ def test_1000_variations():
     iterations = -1
     max_time = 0
     most_tedious_rack = []
+    total_gaddag_time = 0
+    total_val_set_time = 0
 
     for _ in range(1000):
         iteration_start = perf_counter()
@@ -109,7 +111,12 @@ def test_1000_variations():
 
         final = set()
         words = set()
+        time_gaddag_start = perf_counter()
         gen(0, "", counts, g.root_arc)
+        time_gaddag_end = perf_counter()
+        total_gaddag_time += time_gaddag_end - time_gaddag_start
+
+        time_val_set_start = perf_counter()
         for letters in powerset(r):
             for p in permutations(letters):
                 candidates = [""]
@@ -122,6 +129,9 @@ def test_1000_variations():
                 for candidate in candidates:
                     if candidate.upper() in nwl2023:
                         final.add(candidate)
+        time_val_set_end = perf_counter()
+        total_val_set_time += time_val_set_end - time_val_set_start
+
         total_words += len(words)
         if final != words:
             print(final)
@@ -142,6 +152,8 @@ def test_1000_variations():
 
     print(f"\ngenerated {total_words} moves in {total_time_elapsed} seconds\n"
           f"longest iteration: {max_time} seconds, time per iteration: {total_time_elapsed / iterations} seconds\n"
-          f"worst rack: {most_tedious_rack}")
+          f"worst rack: {most_tedious_rack}"
+          f"validation set avg: {total_val_set_time / iterations} seconds\n"
+          f"move generation avg: {total_gaddag_time / iterations} seconds\n")
 
     assert match

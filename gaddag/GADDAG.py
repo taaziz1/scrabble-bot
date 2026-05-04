@@ -34,6 +34,115 @@ class GADDAG:
 
         return words
 
+    def generate_moves(self, board, cross_sets, rack_tiles):
+        moves = set()
+        words = set()
+        row = []
+        anchor = -1
+        transposed = False
+        idx = -1
+
+        def gen(pos, word, rack, arc):
+            if row[anchor + pos]:
+                letter = row[anchor + pos]
+                if arc.destination.arc_exists(letter):
+                    go_on(pos, letter, word, rack, arc.destination.outgoing_arcs[letter])
+            else:
+                if rack['size'] > 0:
+                    for letter in rack:
+                        if rack[letter] > 0:
+                            if letter in arc.final_letters:
+                                if pos <= 0 and (anchor + pos == 0 or not row[anchor + pos - 1]):
+                                    words.add((anchor, idx, letter + word))
+                                elif ((anchor + pos == 14 or not row[anchor + pos + 1])
+                                      and cross_sets.valid_letter(idx, anchor + pos, letter, transposed)):
+                                    words.add((anchor, idx, word + letter))
+                            if letter == '_':
+                                rack['size'] -= 1
+                                rack['_'] -= 1
+                                for l in arc.final_letters:
+                                    if not l == Path.DELIMITER:
+                                        if pos <= 0 and (anchor + pos == 0 or not row[anchor + pos - 1]):
+                                            words.add((anchor, idx, l.lower() + word))
+                                        elif ((anchor + pos == 14 or not row[anchor + pos + 1])
+                                              and cross_sets.valid_letter(idx, anchor + pos, l, transposed)):
+                                            words.add((anchor, idx, word + l.lower()))
+                                for l, a in arc.destination.outgoing_arcs.items():
+                                    if (not l == Path.DELIMITER
+                                            and cross_sets.valid_letter(idx, anchor + pos, l, transposed)):
+                                        go_on(pos, l.lower(), word, rack, a)
+                                rack['_'] += 1
+                                rack['size'] += 1
+                            elif (arc.destination.arc_exists(letter)
+                                  and cross_sets.valid_letter(idx, anchor + pos, letter, transposed)):
+                                rack['size'] -= 1
+                                rack[letter] -= 1
+                                go_on(pos, letter, word, rack, arc.destination.outgoing_arcs[letter])
+                                rack[letter] += 1
+                                rack['size'] += 1
+                if (Path.DELIMITER in arc.final_letters
+                        and cross_sets.valid_letter(idx, anchor + pos + 1, words[-1:], transposed)):
+                    words.add((anchor, idx, word + Path.DELIMITER))
+
+        def go_on(pos, L, word, rack, new_arc):
+            if pos <= 0:
+                new_word = L + word
+                if pos == 0 or not cross_sets.is_anchor(idx, anchor + pos, transposed):
+                    if anchor + pos > 0:
+                        gen(pos - 1, new_word, rack, new_arc)
+                    if ((anchor + pos == 0 or not row[anchor + pos - 1]) and anchor < 14
+                            and new_arc.destination.arc_exists(Path.DELIMITER)):
+                        gen(1, new_word + Path.DELIMITER, rack, new_arc.destination.outgoing_arcs[Path.DELIMITER])
+            else:
+                new_word = word + L
+                if anchor + pos < 14:
+                    gen(pos + 1, new_word, rack, new_arc)
+
+        # convert rack set to dictionary
+        r = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0,
+             'F': 0, 'G': 0, 'H': 0, 'I': 0, 'J': 0,
+             'K': 0, 'L': 0, 'M': 0, 'N': 0, 'O': 0,
+             'P': 0, 'Q': 0, 'R': 0, 'S': 0, 'T': 0,
+             'U': 0, 'V': 0, 'W': 0, 'X': 0, 'Y': 0,
+             'Z': 0, '_': 0, 'size': 0}
+
+        for tile in rack_tiles:
+            r[tile] += 1
+            r['size'] += 1
+
+        final_moves = set()
+        # generate row moves
+        for a in cross_sets.anchor_squares:
+            idx = a[0]
+            row = board.get_row(idx)
+            words = set()
+            anchor = a[1]
+            gen(0, "", r.copy(), self.root_arc)
+            moves.update(words)
+        for move in moves:
+            delim = move[2].index(Path.DELIMITER)
+            row_num = move[1]
+            col_char = chr(move[0] - delim + ord('A'))
+            final_moves.add((row_num, col_char, 'R', move[2].replace(Path.DELIMITER, '')))
+        moves.clear()
+
+        # generate column moves
+        transposed = True
+        for a in cross_sets.anchor_squares:
+            idx = a[1]
+            row = board.get_col(idx)
+            words = set()
+            anchor = a[0]
+            gen(0, "", r.copy(), self.root_arc)
+            moves.update(words)
+        for move in moves:
+            delim = move[2].index(Path.DELIMITER)
+            row_num = move[0] - delim
+            col_char = chr(move[1] + ord('A'))
+            final_moves.add((row_num, col_char, 'D', move[2].replace(Path.DELIMITER, '')))
+
+        return sorted(final_moves, key=lambda mv: len(mv[3]), reverse=True)
+
 
 class Node:
     def __init__(self):

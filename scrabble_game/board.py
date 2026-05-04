@@ -54,6 +54,12 @@ class Board:
     def get_tile(self, row: int, col: int) -> Tile | None:
         return self.get_square(row, col).tile
 
+    def get_row(self, row: int) -> list[str]:
+        return [x.tile.letter if x.tile else None for x in self._grid[row]]
+
+    def get_col(self, col: int) -> list[str]:
+        return [self._grid[row][col].tile.letter if self._grid[row][col].tile else None for row in range(len(self._grid))]
+
     def is_empty_at(self, row: int, col: int) -> bool:
         return self.get_tile(row, col) is None
 
