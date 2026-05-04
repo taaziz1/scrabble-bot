@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
-
 from .models import Position, Square, Tile
 
 
@@ -40,7 +38,10 @@ class Board:
 
     def clone(self) -> "Board":
         cloned = Board(self.size)
-        cloned._grid = deepcopy(self._grid)
+        cloned._grid = [
+            [self.get_square(row, col).copy() for col in range(self.size)]
+            for row in range(self.size)
+        ]
         return cloned
 
     def in_bounds(self, row: int, col: int) -> bool:

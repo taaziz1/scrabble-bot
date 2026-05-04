@@ -15,6 +15,16 @@ class Square:
     word_multiplier: int = 1
     tile: Optional[Tile] = None
 
+    def copy(self):
+        s = Square()
+        s.letter_multiplier = self.letter_multiplier
+        s.word_multiplier = self.word_multiplier
+        if self.tile:
+            s.tile = Tile(self.tile.letter, self.tile.points, self.tile.is_blank)
+        else:
+            s.tile = None
+        return s
+
 
 @dataclass(frozen=True)
 class Position:

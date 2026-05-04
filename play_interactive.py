@@ -76,9 +76,10 @@ def main() -> None:
         if move_type == "place":
             already_placed = []
             tiles_to_place = []
-            rack = r.copy()
             while not tiles_to_place:
                 move = input("Enter starting tile row and column, direction (R or D), and word: ")
+
+                rack = r.copy()
 
                 move_args = move.split(' ')
 
@@ -137,6 +138,7 @@ def main() -> None:
                         tiles_to_place = temp_tiles
                     else:
                         print('word cannot be formed with current tiles')
+                        already_placed = []
 
             move = PlayMove(placements=tuple(tiles_to_place), already_placed=already_placed)
 
