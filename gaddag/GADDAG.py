@@ -81,7 +81,7 @@ class GADDAG:
                                 rack[letter] += 1
                                 rack['size'] += 1
                 if (Path.DELIMITER in arc.final_letters
-                        and cross_sets.valid_letter(idx, anchor + pos + 1, words[-1:], transposed)):
+                        and cross_sets.valid_letter(idx, anchor + pos + 1, word[-1:], transposed)):
                     words.add((anchor, idx, word + Path.DELIMITER))
 
         def go_on(pos, L, word, rack, new_arc):
@@ -120,8 +120,8 @@ class GADDAG:
             gen(0, "", r.copy(), self.root_arc)
             moves.update(words)
         for move in moves:
-            delim = move[2].index(Path.DELIMITER)
-            row_num = move[1]
+            delim = move[2].index(Path.DELIMITER) - 1
+            row_num = move[1] + 1
             col_char = chr(move[0] - delim + ord('A'))
             final_moves.add((row_num, col_char, 'R', move[2].replace(Path.DELIMITER, '')))
         moves.clear()
@@ -136,8 +136,8 @@ class GADDAG:
             gen(0, "", r.copy(), self.root_arc)
             moves.update(words)
         for move in moves:
-            delim = move[2].index(Path.DELIMITER)
-            row_num = move[0] - delim
+            delim = move[2].index(Path.DELIMITER) - 1
+            row_num = move[0] - delim + 1
             col_char = chr(move[1] + ord('A'))
             final_moves.add((row_num, col_char, 'D', move[2].replace(Path.DELIMITER, '')))
 

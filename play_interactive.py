@@ -64,18 +64,19 @@ def main() -> None:
     print_scores(state)
 
     while not state.is_finished:
-        tiles_to_place = []
-        already_placed = []
-        rack = [tile.letter for tile in state.players[state.current_player_index].rack.as_list()]
+        r = [tile.letter for tile in state.players[state.current_player_index].rack.as_list()]
         move = PassMove()
         move_type = ""
 
         while move_type != 'place' and move_type != 'exchange' and move_type != 'pass':
             move_type = input("Enter 'place' to play tiles, 'exchange' to exchange tiles, 'pass' to pass, or 'gen' to generate potential moves: ")
             if move_type == 'gen':
-                print(game.potential_moves(rack))
+                print(game.potential_moves(r))
 
         if move_type == "place":
+            already_placed = []
+            tiles_to_place = []
+            rack = r.copy()
             while not tiles_to_place:
                 move = input("Enter starting tile row and column, direction (R or D), and word: ")
 
@@ -120,13 +121,14 @@ def main() -> None:
                                                             assigned_letter=letter))
                             else:
                                 success = False
+                                print(f"don't have {letter} for {row} {column}")
                                 break
+                        elif state.board.get_tile(row, column).letter != letter:
+                            success = False
+                            print(f"{state.board.get_tile(row, column).letter} != {letter}")
+                            break
                         else:
-                            if state.board.get_tile(row, column).letter != letter:
-                                success = False
-                                break
-                            else:
-                                already_placed.append((row, column))
+                            already_placed.append((row, column))
                         if direction == 'R':
                             column += 1
                         else:

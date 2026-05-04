@@ -9,6 +9,8 @@ class CrossSets:
         self.row_cross_sets = [[set() for _ in range(15)] for _ in range(15)]
         self.col_cross_sets = [[set() for _ in range(15)] for _ in range(15)]
         self.anchor_squares = {(7, 7)}
+        self.row_cross_sets[7][7] = self.valid_chars.copy()
+        self.col_cross_sets[7][7] = self.valid_chars.copy()
 
     def update_cross_sets(self, board, positions, already_placed):
         adjacent_positions = set()
@@ -156,5 +158,4 @@ class CrossSets:
                 if letter in self.col_cross_sets[row][column]:
                     return True
             return False
-        print(f"failed on {row} {column} {letter} {transposed}")
         return True
