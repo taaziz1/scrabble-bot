@@ -54,13 +54,16 @@ class CrossSets:
                     node = node.follow_arc(r[idx])
                     idx -= 1
                 if Path.DELIMITER in node.outgoing_arcs:
-                    suffix = ""
-                    idx = col + 1
-                    while idx != 15 and r[idx]:
-                        suffix += r[idx]
-                        idx += 1
-                    for letter in node.follow_arc(Path.DELIMITER).outgoing_arcs:
-                        if node.final_path_exists(Path.DELIMITER + letter + suffix):
+                    node = node.follow_arc(Path.DELIMITER)
+                    start_pos = col + 1
+                    for letter in node.outgoing_arcs:
+                        idx = start_pos
+                        arc = node.outgoing_arcs[letter]
+                        while idx != 14 and r[idx+1] and r[idx] in arc.destination.outgoing_arcs:
+                            arc = arc.destination.outgoing_arcs[r[idx]]
+                            idx += 1
+
+                        if (idx == 14 or not r[idx+1]) and r[idx] in arc.final_letters:
                             accepted_letters.add(letter)
 
                 row_cross_set = row_cross_set & accepted_letters
@@ -101,13 +104,16 @@ class CrossSets:
                     node = node.follow_arc(c[idx])
                     idx -= 1
                 if Path.DELIMITER in node.outgoing_arcs:
-                    suffix = ""
-                    idx = row + 1
-                    while idx != 15 and c[idx]:
-                        suffix += c[idx]
-                        idx += 1
-                    for letter in node.follow_arc(Path.DELIMITER).outgoing_arcs:
-                        if node.final_path_exists(Path.DELIMITER + letter + suffix):
+                    node = node.follow_arc(Path.DELIMITER)
+                    start_pos = row + 1
+                    for letter in node.outgoing_arcs:
+                        idx = start_pos
+                        arc = node.outgoing_arcs[letter]
+                        while idx != 14 and c[idx+1] and c[idx] in arc.destination.outgoing_arcs:
+                            arc = arc.destination.outgoing_arcs[c[idx]]
+                            idx += 1
+
+                        if (idx == 14 or not c[idx+1]) and c[idx] in arc.final_letters:
                             accepted_letters.add(letter)
 
                 col_cross_set = col_cross_set & accepted_letters
