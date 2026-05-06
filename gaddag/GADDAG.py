@@ -50,8 +50,6 @@ class GADDAG:
                         words.add((anchor, idx, letter + word))
                     elif anchor + pos == 14 or not row[anchor + pos + 1]:
                         words.add((anchor, idx, word + letter))
-                if Path.DELIMITER in arc.final_letters and (anchor == 14 or not row[anchor + 1]):
-                    words.add((anchor, idx, word + Path.DELIMITER))
                 if arc.destination.arc_exists(letter):
                     go_on(pos, letter, word, rack, arc.destination.outgoing_arcs[letter])
             else:

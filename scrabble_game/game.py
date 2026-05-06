@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import heapq
-import pickle
 import random
 
 from .bag import Bag
@@ -83,9 +82,12 @@ class ScrabbleGame:
         return self._state
 
     def potential_moves(self, rack):
-        return heapq.nlargest(5,
-                              iterable=self._gaddag.generate_moves(self._state.board, self._cross_set, rack),
-                              key=lambda m: self.score_gen_move(m, rack))
+        moves = ((m, self.score_gen_move(m, rack))
+                               for m in self._gaddag.generate_moves(self._state.board, self._cross_set, rack))
+        # print("invalid moves: " + str(list(filter(lambda t : t[1] < 0, moves))))
+        return heapq.nlargest(3,
+                              moves,
+                              key=lambda t: t[1])
 
     def score_gen_move(self, mv, r):
         p = []
