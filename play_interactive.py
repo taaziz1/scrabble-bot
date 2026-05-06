@@ -1,4 +1,5 @@
 import pickle
+import time
 
 from scrabble_game.config import DEFAULT_CONFIG
 from scrabble_game.dictionary import PickleDictionary
@@ -43,21 +44,10 @@ def main() -> None:
         config=DEFAULT_CONFIG,
         player_names=["Player 1", "Player 2"],
         dictionary=dictionary,
-        gaddag=g,
-        rng_seed=42
+        gaddag=g
     )
 
     state = game.get_state()
-
-    state.players[0].rack.tiles = [
-        Tile("C", 3),
-        Tile("A", 1),
-        Tile("T", 1),
-        Tile("S", 1),
-        Tile("E", 1),
-        Tile("D", 2),
-        Tile("B", 3),
-    ]
 
     print_board(state.board)
     print_current_player(state)
@@ -71,7 +61,10 @@ def main() -> None:
         while move_type != 'place' and move_type != 'exchange' and move_type != 'pass':
             move_type = input("Enter 'place' to play tiles, 'exchange' to exchange tiles, 'pass' to pass, or 'gen' to generate potential moves: ")
             if move_type == 'gen':
+                start = time.perf_counter()
                 print(game.potential_moves(r))
+                end = time.perf_counter()
+                print(f"generated and validated moves in {end - start} seconds")
 
         if move_type == "place":
             already_placed = []
@@ -175,7 +168,7 @@ def main() -> None:
         print()
         print_scores(state)
         print_current_player(state)
-    print(f"{state.players[state.winner_index]} wins!")
+    print(f"{state.players[state.winner_index].name} wins!")
 
 
 if __name__ == "__main__":

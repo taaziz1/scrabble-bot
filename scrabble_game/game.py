@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import heapq
 import pickle
 import random
 
@@ -10,7 +11,7 @@ from .cross_sets import CrossSets
 from .dictionary import Dictionary
 from gaddag.GADDAG import GADDAG
 from .models import Tile
-from .move import ExchangeMove, PassMove, PlayMove
+from .move import ExchangeMove, PassMove, PlayMove, Placement
 from .rack import Rack
 from .results import MoveResult, ValidationResult
 from .rules import validate_move as rules_validate_move
@@ -82,7 +83,43 @@ class ScrabbleGame:
         return self._state
 
     def potential_moves(self, rack):
-        return self._gaddag.generate_moves(self._state.board, self._cross_set, rack)
+        return heapq.nlargest(5,
+                              iterable=self._gaddag.generate_moves(self._state.board, self._cross_set, rack),
+                              key=lambda m: self.score_gen_move(m, rack))
+
+    def score_gen_move(self, mv, r):
+        p = []
+        rack = r.copy()
+        row, column = mv[0] - 1, ord(mv[1]) - ord("A")
+        direction = (0, 1) if mv[2] == "R" else (1, 0)
+        whole_word = mv[3]
+        for letter in whole_word:
+            if self._state.board.is_empty_at(row, column):
+                if letter.islower():
+                    idx = rack.index('_')
+                    rack[idx] = ''
+                    p.append(Placement(row=row,
+                                                col=column,
+                                                tile_index_in_rack=idx,
+                                                assigned_letter=letter))
+                elif letter in rack:
+                    idx = rack.index(letter)
+                    rack[idx] = ''
+                    p.append(Placement(row=row,
+                                                col=column,
+                                                tile_index_in_rack=idx))
+            row += direction[0]
+            column += direction[1]
+
+        move = PlayMove(placements=tuple(p))
+        validation = self.validate_move(move)
+        if validation.word_cells and validation.newly_placed_positions:
+            return score_play_move(
+                word_cells=validation.word_cells,
+                newly_placed_positions=validation.newly_placed_positions,
+                config=self._config,
+            )
+        return -1
 
     def validate_move(self, move) -> ValidationResult:
         if self._state.is_finished:
