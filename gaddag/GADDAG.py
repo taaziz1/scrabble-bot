@@ -46,9 +46,9 @@ class GADDAG:
             if row[anchor + pos]:
                 letter = row[anchor + pos]
                 if letter in arc.final_letters:
-                    if pos <= 0:
+                    if pos <= 0 and (anchor + pos == 0 or not row[anchor + pos - 1]):
                         words.add((anchor, idx, letter + word))
-                    else:
+                    elif anchor + pos == 14 or not row[anchor + pos + 1]:
                         words.add((anchor, idx, word + letter))
                 if Path.DELIMITER in arc.final_letters and (anchor == 14 or not row[anchor + 1]):
                     words.add((anchor, idx, word + Path.DELIMITER))
