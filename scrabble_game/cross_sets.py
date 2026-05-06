@@ -12,7 +12,7 @@ class CrossSets:
         self.row_cross_sets[7][7] = self.valid_chars.copy()
         self.col_cross_sets[7][7] = self.valid_chars.copy()
 
-    def update_cross_sets(self, board, positions, already_placed):
+    def update_cross_sets(self, board, positions):
         adjacent_positions = set()
         neighbors = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
@@ -25,14 +25,9 @@ class CrossSets:
                     row, col = position.row + n[0], position.col + n[1]
                     if board.is_empty_at(row, col):
                         adjacent_positions.add((row, col))
-                except IndexError:
-                    pass
-
-        for placed in already_placed:
-            for n in neighbors:
-                try:
-                    row, col = placed[0] + n[0], placed[1] + n[1]
-                    if board.is_empty_at(row, col):
+                    else:
+                        while not board.is_empty_at(row, col):
+                            row, col = row + n[0], col + n[1]
                         adjacent_positions.add((row, col))
                 except IndexError:
                     pass

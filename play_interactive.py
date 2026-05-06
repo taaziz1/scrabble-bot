@@ -175,6 +175,8 @@ def main() -> None:
         print()
         print_scores(state)
         print_current_player(state)
+    print(f"{state.players[state.winner_index]} wins!")
+
 
 if __name__ == "__main__":
     main()

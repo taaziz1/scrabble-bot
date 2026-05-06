@@ -133,7 +133,7 @@ class ScrabbleGame:
             current_player.score += score_delta
             self._refill_rack(current_player.rack, new_state.bag)
             if self._cross_set:
-                self._cross_set.update_cross_sets(new_state.board, move.placements, move.already_placed)
+                self._cross_set.update_cross_sets(new_state.board, move.placements)
             new_state.consecutive_scoreless_turns = 0
 
         elif isinstance(move, ExchangeMove):
