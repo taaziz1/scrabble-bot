@@ -1,5 +1,6 @@
 import pickle
 import time
+from dataclasses import dataclass
 
 from gaddag.GADDAG import GADDAG
 from scrabble_game.config import DEFAULT_CONFIG, GameConfig
@@ -9,8 +10,18 @@ from scrabble_game.move import Placement, PlayMove, ExchangeMove, PassMove
 from scrabble_game.results import MoveResult
 
 
+@dataclass
+class Player:
+    name: str
+    computer: bool=False
+
+    def __str__(self):
+        return self.name
+
+
 class InteractiveGame:
-    def __init__(self, lexicon: str, gaddag: str | GADDAG, players: list[str], config: GameConfig) -> None:
+    def __init__(self, lexicon: str, gaddag: str | GADDAG,
+                 humans: list[Player], config: GameConfig, bots: list[Player]=None) -> None:
         self.dictionary = PickleDictionary.from_pickle(lexicon)
 
         self.g = None
@@ -24,9 +35,14 @@ class InteractiveGame:
             except FileNotFoundError:
                 print(f"could not find {gaddag}")
 
+        self.players = humans
+        if bots:
+            self.players.extend(bots)
+        p_names = list(map(str, self.players))
+
         self.game = ScrabbleGame(
             config=config,
-            player_names=players,
+            player_names=p_names,
             dictionary=self.dictionary,
             gaddag=self.g
         )
@@ -113,7 +129,8 @@ class InteractiveGame:
                     print(f"don't have {letter} for {row} {column}")
                     return None
             elif self.state.board.get_tile(row, column).letter != letter:
-                print(f"'{self.state.board.get_tile(row, column).letter}' differs from placed tile: '{letter}', at {row} {column}")
+                print(f"'{self.state.board.get_tile(row, column).letter}' "
+                      f"differs from placed tile: '{letter}', at {row} {column}")
                 return None
             else:
                 already_placed.append((row, column))
@@ -158,31 +175,41 @@ class InteractiveGame:
                  in self.state.players[self.state.current_player_index].rack.as_list()]
             move_type = ""
 
-            while move_type != 'place' and move_type != 'exchange' and move_type != 'pass':
-                move_type = input("Enter 'place' to play tiles, 'exchange' to exchange tiles, or 'pass' to pass: ")
-                if move_type == 'gen':
-                    start = time.perf_counter()
-                    print(self.gen_moves(r))
-                    end = time.perf_counter()
-                    print(f"generated and validated moves in {end - start} seconds")
-
-            if move_type == "place":
-                move = None
-                while not move:
-                    play = input("Enter starting tile row and column, direction (R or D), and word: ")
-                    move = self.play_move(r, play)
-                result = self.game.apply_move(move)
-                self.print_errors(result)
-            elif move_type == "exchange":
-                move = None
-                while not move:
-                    letters = input('Enter the letters you would like to exchange, separated by spaces: ')
-                    move = self.exchange_move(r, letters)
-                result = self.game.apply_move(move)
-                self.print_errors(result)
+            if self.players[self.state.current_player_index].computer:
+                generated_moves = self.gen_moves(r)
+                if generated_moves:
+                    best_move = ' '.join(map(str, generated_moves[0][0]))
+                    move = self.play_move(r, best_move)
+                    result = self.game.apply_move(move)
+                    self.print_errors(result)
+                else:
+                    self.pass_move()
             else:
-                result = self.pass_move()
-                self.print_errors(result)
+                while move_type != 'place' and move_type != 'exchange' and move_type != 'pass':
+                    move_type = input("Enter 'place' to play tiles, 'exchange' to exchange tiles, or 'pass' to pass: ")
+                    if move_type == 'gen':
+                        start = time.perf_counter()
+                        print(self.gen_moves(r))
+                        end = time.perf_counter()
+                        print(f"generated and validated moves in {end - start} seconds")
+
+                if move_type == "place":
+                    move = None
+                    while not move:
+                        play = input("Enter starting tile row and column, direction (R or D), and word: ")
+                        move = self.play_move(r, play)
+                    result = self.game.apply_move(move)
+                    self.print_errors(result)
+                elif move_type == "exchange":
+                    move = None
+                    while not move:
+                        letters = input('Enter the letters you would like to exchange, separated by spaces: ')
+                        move = self.exchange_move(r, letters)
+                    result = self.game.apply_move(move)
+                    self.print_errors(result)
+                else:
+                    result = self.pass_move()
+                    self.print_errors(result)
 
             self.state = self.game.get_state()
             self.print_board()
@@ -195,8 +222,9 @@ class InteractiveGame:
 if __name__ == "__main__":
     dictionary_name = "NWL2023.pickle"
     gaddag_name = "gaddagNWL2023-2.pickle"
-    player_names = ["Player 1", "Player 2"]
+    player_names = [Player("Player 1")]
+    computer_names = [Player("Computer 1", True)]
     conf = DEFAULT_CONFIG
 
-    ig = InteractiveGame(dictionary_name, gaddag_name, player_names, conf)
+    ig = InteractiveGame(dictionary_name, gaddag_name, player_names, conf, computer_names)
     ig.start()
