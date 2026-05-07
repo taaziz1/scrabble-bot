@@ -2,7 +2,7 @@ import pickle
 import time
 
 from gaddag.GADDAG import GADDAG
-from scrabble_game.config import DEFAULT_CONFIG
+from scrabble_game.config import DEFAULT_CONFIG, GameConfig
 from scrabble_game.dictionary import PickleDictionary
 from scrabble_game.game import ScrabbleGame
 from scrabble_game.move import Placement, PlayMove, ExchangeMove, PassMove
@@ -10,7 +10,7 @@ from scrabble_game.results import MoveResult
 
 
 class InteractiveGame:
-    def __init__(self, lexicon, gaddag, players, config) -> None:
+    def __init__(self, lexicon: str, gaddag: str, players: list[str], config: GameConfig) -> None:
         self.dictionary = PickleDictionary.from_pickle(lexicon)
 
         print("loading...")
@@ -52,10 +52,14 @@ class InteractiveGame:
         player_name = self.state.players[self.state.current_player_index].name
         print(f"{player_name}'s turn")
 
-    def print_errors(self, result: MoveResult) -> None:
+    def print_errors(self, result: MoveResult) -> bool:
+        error_found = False
         for e in result.errors:
             print(e)
-        print()
+            error_found = True
+        if error_found:
+            print()
+        return error_found
 
     def play_move(self, r: list[str], move: str) -> PlayMove | None:
         already_placed = []
@@ -140,10 +144,7 @@ class InteractiveGame:
         return self.game.apply_move(PassMove())
 
     def gen_moves(self, r: list[str]) -> str:
-        start = time.perf_counter()
         moves = self.game.potential_moves(r)
-        end = time.perf_counter()
-        print(f"generated and validated moves in {end - start} seconds")
         return moves
 
     def start(self) -> None:
@@ -159,7 +160,10 @@ class InteractiveGame:
             while move_type != 'place' and move_type != 'exchange' and move_type != 'pass':
                 move_type = input("Enter 'place' to play tiles, 'exchange' to exchange tiles, or 'pass' to pass: ")
                 if move_type == 'gen':
+                    start = time.perf_counter()
                     print(self.gen_moves(r))
+                    end = time.perf_counter()
+                    print(f"generated and validated moves in {end - start} seconds")
 
             if move_type == "place":
                 move = None
