@@ -1,3 +1,5 @@
+import pickle
+
 from play_interactive import InteractiveGame
 from scrabble_game.config import DEFAULT_CONFIG
 
@@ -6,11 +8,17 @@ if __name__ == "__main__":
     gaddag_name = "gaddagNWL2023-2.pickle"
     player_names = ["Player 1", "Player 2"]
     conf = DEFAULT_CONFIG
+    gaddag = pickle.load(open("gaddagNWL2023-2.pickle", "rb"))
+    NUMBER_OF_GAMES = 10
+    verbose = True
 
-    for _ in range(100):
+    for i in range(NUMBER_OF_GAMES):
+        if verbose:
+            print(f"{"—" * 12} Game {i+1} {"—" * 12}")
+        else:
+            print(f"\ron game {i+1}/{NUMBER_OF_GAMES}", end="", flush=True)
 
-        ig = InteractiveGame(dictionary_name, gaddag_name, player_names, conf)
-        print()
+        ig = InteractiveGame(dictionary_name, gaddag, player_names, conf)
 
         move_number = 0
         while not ig.state.is_finished:
@@ -27,10 +35,14 @@ if __name__ == "__main__":
             else:
                 ig.pass_move()
             move_number += 1
-            print(f"\rat move {move_number}", end="", flush=True)
+            if verbose:
+                print(f"\rat move {move_number}", end="", flush=True)
             ig.state = ig.game.get_state()
 
-        print(f"\ngame finished with {move_number} moves:")
-        ig.print_board()
-        ig.print_scores()
-        print(f"{ig.state.players[ig.state.winner_index].name} wins!")
+        if verbose:
+            print(f"\ngame finished with {move_number} moves:")
+            ig.print_board()
+            ig.print_scores()
+            print(f"{ig.state.players[ig.state.winner_index].name} wins!\n")
+
+    print(f"\nsimulated {NUMBER_OF_GAMES} games")

@@ -10,16 +10,19 @@ from scrabble_game.results import MoveResult
 
 
 class InteractiveGame:
-    def __init__(self, lexicon: str, gaddag: str, players: list[str], config: GameConfig) -> None:
+    def __init__(self, lexicon: str, gaddag: str | GADDAG, players: list[str], config: GameConfig) -> None:
         self.dictionary = PickleDictionary.from_pickle(lexicon)
 
-        print("loading...")
-
         self.g = None
-        try:
-            self.g = pickle.load(open(gaddag, "rb"))
-        except FileNotFoundError:
-            print(f"could not find {gaddag}")
+        if isinstance(gaddag, GADDAG):
+            self.g = gaddag
+        else:
+            print(f"loading {gaddag}...")
+            try:
+                self.g = pickle.load(open(gaddag, "rb"))
+                print(f"loaded {gaddag} successfully!")
+            except FileNotFoundError:
+                print(f"could not find {gaddag}")
 
         self.game = ScrabbleGame(
             config=config,
@@ -29,8 +32,6 @@ class InteractiveGame:
         )
 
         self.state = self.game.get_state()
-
-        print("loaded!")
 
     def create_gaddag(self, dictionary: str, output: str) -> None:
         nwl2023 = pickle.load(open(dictionary, "rb"))
