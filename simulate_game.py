@@ -1,15 +1,15 @@
 import pickle
 
-from play_interactive import InteractiveGame
+from play_interactive import InteractiveGame, Player
 from scrabble_game.config import DEFAULT_CONFIG
 
 if __name__ == "__main__":
     dictionary_name = "NWL2023.pickle"
     gaddag_name = "gaddagNWL2023-2.pickle"
-    player_names = ["Player 1", "Player 2"]
+    player_names = [Player("Player 1"), Player("Player 2")]
     conf = DEFAULT_CONFIG
     gaddag = pickle.load(open("gaddagNWL2023-2.pickle", "rb"))
-    NUMBER_OF_GAMES = 10
+    NUMBER_OF_GAMES = 100
     verbose = True
 
     for i in range(NUMBER_OF_GAMES):

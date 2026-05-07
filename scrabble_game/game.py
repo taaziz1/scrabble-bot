@@ -9,7 +9,7 @@ from .config import GameConfig
 from .cross_sets import CrossSets
 from .dictionary import Dictionary
 from gaddag.GADDAG import GADDAG
-from .models import Tile
+from .models import Tile, Position, Square
 from .move import ExchangeMove, PassMove, PlayMove, Placement
 from .rack import Rack
 from .results import MoveResult, ValidationResult
@@ -81,20 +81,21 @@ class ScrabbleGame:
     def get_state(self) -> GameState:
         return self._state
 
-    def potential_moves(self, rack):
+    def potential_moves(self, rack: list[str]) -> list[tuple[tuple[int, str, str, str], int]]:
         moves = ((m, self.score_gen_move(m, rack))
-                               for m in self._gaddag.generate_moves(self._state.board, self._cross_set, rack))
+                 for m in self._gaddag.generate_moves(self._state.board, self._cross_set, rack))
         # print("invalid moves: " + str(list(filter(lambda t : t[1] < 0, moves))))
-        return heapq.nlargest(3,
+        return heapq.nlargest(5,
                               moves,
                               key=lambda t: t[1])
 
-    def score_gen_move(self, mv, r):
+    def score_gen_move(self, mv: tuple[int, str, str, str], r: list[str]) -> int:
         p = []
         rack = r.copy()
         row, column = mv[0] - 1, ord(mv[1]) - ord("A")
         direction = (0, 1) if mv[2] == "R" else (1, 0)
         whole_word = mv[3]
+
         for letter in whole_word:
             if self._state.board.is_empty_at(row, column):
                 if letter.islower():
@@ -114,14 +115,45 @@ class ScrabbleGame:
             column += direction[1]
 
         move = PlayMove(placements=tuple(p))
-        validation = self.validate_move(move)
-        if validation.word_cells and validation.newly_placed_positions:
+        newly_placed_positions = {(placement.row, placement.col) for placement in p}
+        words = self.get_cells(move, self._state.players[self._state.current_player_index].rack, p)
+
+        if words and newly_placed_positions:
             return score_play_move(
-                word_cells=validation.word_cells,
-                newly_placed_positions=validation.newly_placed_positions,
+                word_cells=words,
+                newly_placed_positions=newly_placed_positions,
                 config=self._config,
             )
         return -1
+
+    def get_cells(self, move: PlayMove, rack: Rack, placements: list[Placement]) \
+            -> list[list[tuple[Position, Square, Tile]]]:
+        for placement in placements:
+            rack_tile = rack[placement.tile_index_in_rack]
+            tile = self._resolve_tile_for_placement(rack_tile, placement.assigned_letter)
+            self._state.board.place_tile(placement.row, placement.col, tile)
+
+        rows = {placement.row for placement in placements}
+        horizontal = len(rows) == 1
+        words = []
+
+        main_anchor = move.placements[0]
+        main_word = self._state.board.collect_word(main_anchor.row, main_anchor.col, horizontal)
+        if len(main_word) > 1:
+            words.append(main_word)
+
+        for placement in move.placements:
+            cross_word = self._state.board.collect_word(placement.row, placement.col, not horizontal)
+            if len(cross_word) > 1:
+                words.append(cross_word)
+
+        if not words:
+            words.append(main_word)
+
+        for placement in placements:
+            self._state.board.remove_tile(placement.row, placement.col)
+
+        return words
 
     def validate_move(self, move) -> ValidationResult:
         if self._state.is_finished:
