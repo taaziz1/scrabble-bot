@@ -57,101 +57,87 @@ class InteractiveGame:
             print(e)
         print()
 
-    def play_move(self, r: list[str]) -> None:
+    def play_move(self, r: list[str], move: str) -> PlayMove | None:
         already_placed = []
         tiles_to_place = []
-        while not tiles_to_place:
-            move = input("Enter starting tile row and column, direction (R or D), and word: ")
+        rack = r.copy()
+        move_args = move.split(' ')
 
-            rack = r.copy()
+        if len(move_args) != 4:
+            print(f"got {len(move_args)} arguments, expected 4 arguments")
+            return None
 
-            move_args = move.split(' ')
+        direction = move_args[2]
+        word = list(move_args[3])
 
-            if len(move_args) == 4:
-                direction = move_args[2]
-                word = list(move_args[3])
-                try:
-                    row, col = int(move_args[0]) - 1, move_args[1]
-                    column = ord(col) - ord('A')
-                    if row < 0 or row > 14 or column < 0 or column > 14:
-                        print("row or column invalid")
-                        continue
-                except ValueError:
-                    print('invalid row or column number')
-                    continue
-                except TypeError:
-                    print('invalid row or column number')
-                    continue
+        try:
+            row, col = int(move_args[0]) - 1, move_args[1]
+            column = ord(col) - ord('A')
+            if row < 0 or row > 14 or column < 0 or column > 14:
+                print("row or column invalid")
+                return None
 
-                if direction != 'R' and direction != 'D':
-                    print('invalid direction, choose \'R\' or \'D\'')
-                    continue
+        except ValueError:
+            print('invalid row or column number')
+            return None
 
-                success = True
-                temp_tiles = []
-                for letter in word:
-                    if self.state.board.is_empty_at(row, column):
-                        if letter in rack:
-                            idx = rack.index(letter)
-                            rack[idx] = ''
-                            temp_tiles.append(Placement(row=row,
-                                                        col=column,
-                                                        tile_index_in_rack=idx))
-                        elif '_' in rack:
-                            idx = rack.index('_')
-                            rack[idx] = ''
-                            temp_tiles.append(Placement(row=row,
-                                                        col=column,
-                                                        tile_index_in_rack=idx,
-                                                        assigned_letter=letter))
-                        else:
-                            success = False
-                            print(f"don't have {letter} for {row} {column}")
-                            break
-                    elif self.state.board.get_tile(row, column).letter != letter:
-                        success = False
-                        print(f"{self.state.board.get_tile(row, column).letter} != {letter}")
-                        break
-                    else:
-                        already_placed.append((row, column))
-                    if direction == 'R':
-                        column += 1
-                    else:
-                        row += 1
-                if success:
-                    tiles_to_place = temp_tiles
+        except TypeError:
+            print('invalid row or column number')
+            return None
+
+        if direction != 'R' and direction != 'D':
+            print('invalid direction, choose \'R\' or \'D\'')
+            return None
+
+        for letter in word:
+            if self.state.board.is_empty_at(row, column):
+                if letter in rack:
+                    idx = rack.index(letter)
+                    rack[idx] = ''
+                    tiles_to_place.append(Placement(row=row,
+                                                col=column,
+                                            tile_index_in_rack=idx))
+                elif '_' in rack:
+                    idx = rack.index('_')
+                    rack[idx] = ''
+                    tiles_to_place.append(Placement(row=row,
+                                                col=column,
+                                                tile_index_in_rack=idx,
+                                                assigned_letter=letter))
                 else:
-                    print('word cannot be formed with current tiles')
-                    already_placed = []
+                    print(f"don't have {letter} for {row} {column}")
+                    return None
+            elif self.state.board.get_tile(row, column).letter != letter:
+                print(f"'{self.state.board.get_tile(row, column).letter}' differs from placed tile: '{letter}', at {row} {column}")
+                return None
+            else:
+                already_placed.append((row, column))
+            if direction == 'R':
+                column += 1
+            else:
+                row += 1
 
-        move = PlayMove(placements=tuple(tiles_to_place), already_placed=already_placed)
-        result = self.game.apply_move(move)
-        self.print_errors(result)
+        return PlayMove(placements=tuple(tiles_to_place), already_placed=already_placed)
 
-    def exchange_move(self, r) -> None:
+    def exchange_move(self, r: list[str], letters: str) -> ExchangeMove | None:
         indices = []
+        rack = r.copy()
+        t = letters.split(' ')
 
-        while not indices:
-            rack = r.copy()
-            letters = input('Enter the letters you would like to exchange, separated by spaces: ')
-            t = letters.split(' ')
+        if len(t) <= 0:
+            return None
 
-            for letter in t:
-                if letter not in rack:
-                    print(f"{letter} not in rack")
-                    indices.clear()
-                    break
-                idx = rack.index(letter)
-                indices.append(idx)
-                rack[idx] = ''
+        for letter in t:
+            if letter not in rack:
+                print(f"{letter} not in rack")
+                return None
+            idx = rack.index(letter)
+            indices.append(idx)
+            rack[idx] = ''
+        return ExchangeMove(tuple(indices))
 
-        move = ExchangeMove(tuple(indices))
-        result = self.game.apply_move(move)
-        self.print_errors(result)
-
-    def pass_move(self) -> None:
-        result = self.game.apply_move(PassMove())
-        self.print_errors(result)
+    def pass_move(self) -> MoveResult:
+        return self.game.apply_move(PassMove())
 
     def gen_moves(self, r: list[str]) -> str:
         start = time.perf_counter()
@@ -171,16 +157,27 @@ class InteractiveGame:
             move_type = ""
 
             while move_type != 'place' and move_type != 'exchange' and move_type != 'pass':
-                move_type = input("Enter 'place' to play tiles, 'exchange' to exchange tiles, 'pass' to pass, or 'gen' to generate potential moves: ")
+                move_type = input("Enter 'place' to play tiles, 'exchange' to exchange tiles, or 'pass' to pass: ")
                 if move_type == 'gen':
                     print(self.gen_moves(r))
 
             if move_type == "place":
-                self.play_move(r)
+                move = None
+                while not move:
+                    play = input("Enter starting tile row and column, direction (R or D), and word: ")
+                    move = self.play_move(r, play)
+                result = self.game.apply_move(move)
+                self.print_errors(result)
             elif move_type == "exchange":
-                self.exchange_move(r)
+                move = None
+                while not move:
+                    letters = input('Enter the letters you would like to exchange, separated by spaces: ')
+                    move = self.exchange_move(r, letters)
+                result = self.game.apply_move(move)
+                self.print_errors(result)
             else:
-                self.pass_move()
+                result = self.pass_move()
+                self.print_errors(result)
 
             self.state = self.game.get_state()
             self.print_board()

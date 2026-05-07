@@ -142,9 +142,6 @@ class CrossSets:
             self.row_cross_sets[row][col] = row_cross_set
             self.col_cross_sets[row][col] = col_cross_set
 
-        print([(a, self.row_cross_sets[a[0]][a[1]], self.col_cross_sets[a[0]][a[1]]) for a in self.anchor_squares])
-        print(len(self.anchor_squares))
-
     def is_anchor(self, row, column, transposed):
         if transposed:
             return (column, row) in self.anchor_squares
