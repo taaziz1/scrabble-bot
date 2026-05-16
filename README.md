@@ -10,6 +10,15 @@ A GADDAG-based computer Scrabble player written in Python.
 - An object-oriented implementation of the GADDAG data structure
 - Move generation, validation, and evaluation algorithms
 
+## Folder Hierarchy
+    gaddag
+      ↳ Source code for GADDAG data structure.
+    
+    scrabble_game
+      ↳ Components needed to implement Scrabble.
+
+    tests
+      ↳ Test suite for Scrabble implementation.
 
 ## Usage
 Clone the repository:
