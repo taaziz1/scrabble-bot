@@ -19,6 +19,19 @@ class Player:
         return self.name
 
 
+def choose_players(numbers):
+    try:
+        nums = numbers.split(" ")
+        if len(nums) == 2:
+            humans, computers = int(nums[0]), int(nums[1])
+            if humans + computers >= 2 and humans >= 0 and computers >= 0:
+                    return ([Player("Player " + str(i)) for i in range(1, humans + 1)],
+                            [Player("Computer " + str(i), True) for i in range(1, computers + 1)])
+        return [], []
+    except:
+        return [], []
+
+
 class InteractiveGame:
     def __init__(self, lexicon: str, gaddag: str | GADDAG,
                  humans: list[Player], config: GameConfig, bots: list[Player]=None) -> None:
@@ -222,9 +235,12 @@ class InteractiveGame:
 if __name__ == "__main__":
     dictionary_name = "NWL2023.pickle"
     gaddag_name = "gaddagNWL2023-2.pickle"
-    player_names = [Player("Player 1")]
-    computer_names = [Player("Computer 1", True)]
+    player_names = []
+    computer_names = []
     conf = DEFAULT_CONFIG
+
+    while not player_names and not computer_names:
+        player_names, computer_names = choose_players(input("Input number of human and computer players: "))
 
     ig = InteractiveGame(dictionary_name, gaddag_name, player_names, conf, computer_names)
     ig.start()
