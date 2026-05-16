@@ -62,12 +62,6 @@ class InteractiveGame:
 
         self.state = self.game.get_state()
 
-    def create_gaddag(self, dictionary: str, output: str) -> None:
-        nwl2023 = pickle.load(open(dictionary, "rb"))
-
-        g = GADDAG(nwl2023)
-        pickle.dump(g, open(output, "wb"))
-
     def print_board(self) -> None:
         print(self.state.board)
         print()
